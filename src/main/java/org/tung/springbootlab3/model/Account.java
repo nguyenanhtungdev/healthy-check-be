@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
+@Entity
 @Data
 @AllArgsConstructor
-@Entity
 @NoArgsConstructor
-public class User {
+public class Account {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
@@ -25,14 +27,21 @@ public class User {
     @Column(unique = true)
     private String username;
     private String password;
-    private String email;
-    private String phone;
-    private String address;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private UUID createdBy;
     private UUID updatedBy;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id", referencedColumnName = "id")
-    private Account account;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private Boolean status;
+    private String image;
+    private String url;
+    private String role;
+    @OneToOne(mappedBy = "account")
+    private User user;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "account_role",
+            joinColumns = @JoinColumn(name = "account_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 }

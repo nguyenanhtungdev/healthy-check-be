@@ -6,14 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-@Entity
 @NoArgsConstructor
-public class User {
+@Entity
+public class Role {
+
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
@@ -22,17 +26,12 @@ public class User {
     )
     @Column(updatable = false, nullable = false)
     private UUID id;
-    @Column(unique = true)
-    private String username;
-    private String password;
-    private String email;
-    private String phone;
-    private String address;
+
+    @Column(unique = true, nullable = false)
+    private String roleName;
+    private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private UUID createdBy;
-    private UUID updatedBy;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id", referencedColumnName = "id")
-    private Account account;
+    private LocalDate birthDate;
+    private Boolean gender;
 }

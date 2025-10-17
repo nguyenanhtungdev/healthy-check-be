@@ -107,4 +107,8 @@ public class AuthService {
                 .filter(acc -> passwordEncoder.matches(password, acc.getPassword()))
                 .orElse(null);
     }
+
+    public boolean usernameExists(String username) {
+        return accountRepository.findByUsername(username).isPresent();
+    }
 }

@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.tung.springbootlab3.dto.EmailRequest;
+import org.tung.springbootlab3.dto.ForgotPasswordRequest;
+import org.tung.springbootlab3.dto.ResetPasswordRequest;
 import org.tung.springbootlab3.model.Account;
 import org.tung.springbootlab3.model.User;
 import org.tung.springbootlab3.services.AuthService;
@@ -22,17 +25,21 @@ public class AuthController {
 
     // Gửi mã xác thực
     @PostMapping("/send-code")
-    public ResponseEntity<?> sendCode(@RequestParam String email) {
+    public ResponseEntity<?> sendCode(@RequestBody EmailRequest request) {
+        String email = request.getEmail().trim();
         authService.sendRegisterCode(email);
         return ResponseEntity.ok(Map.of("message", "Verification code sent to " + email));
     }
 
     // Xác thực và đăng ký
     @PostMapping("/verify-register")
-    public ResponseEntity<?> verifyAndRegister(@RequestParam String email,
-                                               @RequestParam String password,
-                                               @RequestParam String code) {
-        Account acc = authService.verifyAndRegister(email, password, code);
+    public ResponseEntity<?> verifyAndRegister(@RequestBody RegisterRequest request) {
+        Account acc = authService.verifyAndRegister(
+                request.getEmail().trim(),
+                request.getPassword(),
+                request.getCode().trim()
+        );
+
         Map<String, Object> res = new HashMap<>();
         res.put("message", "Register successful");
         res.put("accountId", acc.getId());
@@ -41,19 +48,23 @@ public class AuthController {
 
     // Gửi mã đổi mật khẩu
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> sendForgotCode(@RequestParam String email) {
+    public ResponseEntity<?> sendForgotCode(@RequestBody ForgotPasswordRequest request) {
+        String email = request.getEmail().trim();
         authService.sendRegisterCode(email);
         return ResponseEntity.ok(Map.of("message", "Password reset code sent"));
     }
 
     // Xác thực đổi mật khẩu
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestParam String email,
-                                           @RequestParam String newPassword,
-                                           @RequestParam String code) {
-        authService.resetPassword(email, newPassword, code);
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(
+                request.getEmail().trim(),
+                request.getNewPassword(),
+                request.getCode().trim()
+        );
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Account account) {
@@ -91,4 +102,19 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
+    @PostMapping("/check-username")
+    public ResponseEntity<Map<String, Object>> checkUsername(@RequestBody Map<String, String> request) {
+        String username = request.get("username").trim();
+
+        boolean exists = authService.usernameExists(username);
+        Map<String, Object> response = new HashMap<>();
+
+        if (exists) {
+            response.put("message", "Username already exists, please use another email.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else {
+            response.put("message", "Username available.");
+            return ResponseEntity.ok(response);
+        }
+    }
 }

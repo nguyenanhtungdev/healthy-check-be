@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.tung</groupId>
-	<artifactId>SpringBootLab3</artifactId>
+	<artifactId>HealthyCheck</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>SpringBootLab3</name>
-	<description>SpringBootLab3</description>
+	<name>HealthyCheck</name>
+	<description>HealthyCheck</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -38,7 +38,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.36.0</version>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

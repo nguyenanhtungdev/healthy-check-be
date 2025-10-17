@@ -1,4 +1,4 @@
-package org.tung.springbootlab3.controller;
+package org.tung.springbootlab3.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

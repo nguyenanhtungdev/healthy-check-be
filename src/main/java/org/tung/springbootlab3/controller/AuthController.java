@@ -6,9 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tung.springbootlab3.dto.EmailRequest;
 import org.tung.springbootlab3.dto.ForgotPasswordRequest;
+import org.tung.springbootlab3.dto.RegisterRequest;
 import org.tung.springbootlab3.dto.ResetPasswordRequest;
 import org.tung.springbootlab3.model.Account;
-import org.tung.springbootlab3.model.User;
 import org.tung.springbootlab3.services.AuthService;
 import org.tung.springbootlab3.util.JwtUtil;
 

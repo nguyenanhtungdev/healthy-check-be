@@ -1,10 +1,18 @@
 package org.tung.springbootlab3.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.tung.springbootlab3.dto.AccountProfileDTO;
+import org.tung.springbootlab3.dto.UpdateProfileDTO;
 import org.tung.springbootlab3.model.Account;
+import org.tung.springbootlab3.model.User;
+import org.tung.springbootlab3.model.UserHealth;
 import org.tung.springbootlab3.repository.AccountRepository;
+import org.tung.springbootlab3.repository.UserHealthRepository;
+import org.tung.springbootlab3.repository.UserRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -12,9 +20,12 @@ public class AccountService {
 
     @Autowired
     private AccountRepository accountRepository;
-
     @Autowired
     private CloudinaryService cloudinaryService;
+    @Autowired
+    private UserHealthRepository userHealthRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public Account updateAvatar(UUID accountId, String imageUrl, String newPublicId, String oldPublicId) {
         Account account = accountRepository.findById(accountId)
@@ -30,8 +41,48 @@ public class AccountService {
         return account;
     }
 
-    public Account getAccount(UUID accountId) {
-        return accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+    public AccountProfileDTO getAccount(UUID accountId) {
+        Account acc = accountRepository.findById(accountId).orElse(null);
+        if (acc == null) return null;
+        User user = acc.getUser();
+        assert acc.getUser() != null;
+        AccountProfileDTO dto = new AccountProfileDTO(
+                acc.getId(),
+                acc.getUsername(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getAddress(),
+                acc.getImage(),
+                acc.getRole(),
+                acc.getUser().getBirth(),
+                acc.getUser().getHealthInfo().getHeight(),
+                acc.getUser().getHealthInfo().getWeight(),
+                acc.getUser().getHealthInfo().getBloodType(),
+                acc.getUser().getFullName(),
+                acc.getUser().getGender()
+        );
+        return dto;
+    }
+
+    public String updateProfile(UpdateProfileDTO dto) {
+        Account account = accountRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy account với accountID: " + dto.getUserId()));
+        User user = account.getUser();
+        user.setEmail(dto.getEmail());
+        user.setPhone(dto.getPhone());
+        user.setAddress(dto.getAddress());
+        user.setBirth(dto.getBirth());
+        user.setFullName(dto.getFullName());
+        user.setGender(dto.getGender());
+        userRepository.save(user);
+
+        Optional<UserHealth> existingHealth = userHealthRepository.findByUser(user);
+        UserHealth health = existingHealth.orElseGet(UserHealth::new);
+        health.setUser(user);
+        health.setHeight(dto.getHeight());
+        health.setWeight(dto.getWeight());
+        health.setBloodType(dto.getBloodType());
+        userHealthRepository.save(health);
+        return "Cập nhật thông tin thành công";
     }
 }

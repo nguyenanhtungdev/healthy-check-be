@@ -1,11 +1,13 @@
 package org.tung.springbootlab3.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,6 +26,8 @@ public class User {
     private UUID id;
     @Column(unique = true)
     private String username;
+    private String fullName;
+    private Boolean gender;
     private String password;
     private String email;
     private String phone;
@@ -32,7 +36,11 @@ public class User {
     private LocalDateTime updatedAt;
     private UUID createdBy;
     private UUID updatedBy;
+    private LocalDate birth;
     @OneToOne(cascade = CascadeType.ALL)
+    @JsonManagedReference
     @JoinColumn(name = "account_id", referencedColumnName = "id")
     private Account account;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserHealth healthInfo;
 }

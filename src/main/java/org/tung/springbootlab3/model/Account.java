@@ -1,5 +1,6 @@
 package org.tung.springbootlab3.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class Account {
     private String url;
     private String role;
     @OneToOne(mappedBy = "account")
+    @JsonBackReference
     private User user;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

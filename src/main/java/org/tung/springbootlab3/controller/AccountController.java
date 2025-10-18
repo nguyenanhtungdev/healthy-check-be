@@ -2,13 +2,13 @@ package org.tung.springbootlab3.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.tung.springbootlab3.dto.AccountProfileDTO;
+import org.tung.springbootlab3.dto.UpdateProfileDTO;
 import org.tung.springbootlab3.model.Account;
 import org.tung.springbootlab3.services.AccountService;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -16,9 +16,22 @@ import java.util.UUID;
 public class AccountController {
     @Autowired
     private AccountService accountService;
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccount(@PathVariable UUID id) {
+    @PostMapping("/get-account")
+    public ResponseEntity<AccountProfileDTO> getAccount(@RequestBody Map<String, String> body) {
+        String idString = body.get("id");
+        UUID id = UUID.fromString(idString);
         return ResponseEntity.ok(accountService.getAccount(id));
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileDTO dto) {
+        try {
+            String message = accountService.updateProfile(dto);
+            return ResponseEntity.ok(Map.of("message", message));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi hệ thống: " + e.getMessage()));
+        }
     }
 }

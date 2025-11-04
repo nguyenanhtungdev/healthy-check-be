@@ -1,4 +1,4 @@
-package org.tung.springbootlab3.security;
+package org.tung.springbootlab3.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

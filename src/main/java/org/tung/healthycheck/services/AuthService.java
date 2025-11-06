@@ -1,6 +1,7 @@
 package org.tung.healthycheck.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.tung.healthycheck.model.Account;
@@ -82,8 +83,6 @@ public class AuthService {
         return account;
     }
 
-
-
     // Đổi mật khẩu bằng email OTP
     public void resetPassword(String email, String newPassword, String code) {
         EmailVerification ev = emailVerificationRepository
@@ -105,5 +104,17 @@ public class AuthService {
 
     public boolean usernameExists(String username) {
         return accountRepository.findByUsername(username).isPresent();
+    }
+
+    public Account getCurrentAccount() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return accountRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+    }
+
+    public User getCurrentUser() {
+        Account account = getCurrentAccount();
+        return userRepository.findByAccount_Id(account.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
     }
 }

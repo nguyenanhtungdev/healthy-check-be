@@ -28,7 +28,7 @@ public class FamilyMemberService {
     private UserRepository userRepository;
 
     /**
-     * ✅ Lấy danh sách thành viên (bao gồm cả chủ hộ)
+     * Lấy danh sách thành viên (bao gồm cả chủ hộ)
      */
     public List<FamilyMemberDTO> getFamilyMembers(UUID ownerId) {
         List<FamilyMemberDTO> members = familyMemberRepository.findByOwner_Id(ownerId)
@@ -52,12 +52,15 @@ public class FamilyMemberService {
                 );
             }
 
-            String urlImage = owner.getAccount() != null ? owner.getAccount().getUrl() : null;
+            String imagePath = null;
+            if (owner.getAccount() != null) {
+                imagePath = owner.getAccount().getImage();
+            }
 
             UserSimpleDTO ownerDTO = new UserSimpleDTO();
             ownerDTO.setId(owner.getId());
             ownerDTO.setFullName(owner.getFullName());
-            ownerDTO.setUrlImage(urlImage);
+            ownerDTO.setUrlImage(imagePath);
             ownerDTO.setPhone(owner.getPhone());
             ownerDTO.setEmail(owner.getEmail());
             ownerDTO.setBirth(owner.getBirth());
@@ -73,7 +76,7 @@ public class FamilyMemberService {
             finalMembers.add(0, ownerFm);
         }
 
-// Gán role cho các thành viên khác
+        // Gán role cho các thành viên khác
         for (FamilyMemberDTO fm : finalMembers) {
             if (!"Chủ hộ".equals(fm.getRelation()) && fm.getMember() != null) {
                 fm.getMember().setRoleInFamily("Thành viên");
@@ -85,7 +88,7 @@ public class FamilyMemberService {
     }
 
     /**
-     * ✅ Thêm thành viên bằng số điện thoại
+     * Thêm thành viên bằng số điện thoại
      */
     public String addMemberByPhone(UUID ownerId, String phone, String relation) {
         Optional<User> ownerOpt = userRepository.findById(ownerId);
@@ -124,7 +127,7 @@ public class FamilyMemberService {
     }
 
     /**
-     * ✅ Chuyển FamilyMember entity -> DTO
+     * Chuyển FamilyMember entity -> DTO
      */
     private FamilyMemberDTO convertToDTO(FamilyMember fm) {
         User member = fm.getMember();
@@ -138,10 +141,16 @@ public class FamilyMemberService {
             );
         }
 
+        // ✅ Lấy trực tiếp image (không dùng url)
+        String imagePath = null;
+        if (member.getAccount() != null) {
+            imagePath = member.getAccount().getImage();
+        }
+
         UserSimpleDTO memberDTO = new UserSimpleDTO();
         memberDTO.setId(member.getId());
         memberDTO.setFullName(member.getFullName());
-        memberDTO.setUrlImage(member.getAccount() != null ? member.getAccount().getUrl() : null);
+        memberDTO.setUrlImage(imagePath); // 👈 chỉ set image
         memberDTO.setPhone(member.getPhone());
         memberDTO.setEmail(member.getEmail());
         memberDTO.setBirth(member.getBirth());
@@ -158,7 +167,7 @@ public class FamilyMemberService {
     }
 
     /**
-     * ✅ Tìm kiếm thành viên trong hộ
+     * Tìm kiếm thành viên trong hộ
      */
     public List<FamilyMemberDTO> searchFamilyMembers(UUID ownerId, String keyword) {
         String normalizedKeyword = normalize(keyword);

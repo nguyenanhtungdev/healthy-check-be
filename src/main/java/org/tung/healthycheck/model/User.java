@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor
 @Data
+@EqualsAndHashCode(exclude = {"account", "healthInfo"})
 public class User {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -41,5 +43,6 @@ public class User {
     @JoinColumn(name = "account_id", referencedColumnName = "id")
     private Account account;
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private UserHealth healthInfo;
 }

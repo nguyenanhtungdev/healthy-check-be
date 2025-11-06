@@ -1,34 +1,32 @@
 package org.tung.healthycheck.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"user"})
-public class UserHealth {
+public class Notification {
 
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(updatable = false, nullable = false)
     private UUID id;
 
-    private Double height;
-    private Double weight;
-    private String bloodType;
+    private String title;
+    private String content;
+    private String type; // "lich_kham", "suc_khoe", "cap_nhat", "uu_dai", ...
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private Boolean isRead = false;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 }

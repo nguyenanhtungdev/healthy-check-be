@@ -37,10 +37,13 @@ public class AppointmentScheduleService {
         schedule.setNote(note);
         schedule.setCreatedBy(creator);
         schedule.setParticipants(participants);
-        // Gửi thông báo cho creator và participants
-        notificationService.createNotificationsForAppointment(creator, participants, hospital);
-        return appointmentScheduleRepository.save(schedule);
+
+        AppointmentSchedule saved = appointmentScheduleRepository.save(schedule);
+
+        notificationService.createNotificationsForAppointment(creator, participants, hospital, saved);
+        return saved;
     }
+
 
     public List<AppointmentSchedule> getSchedulesByUser(UUID userId) {
         return appointmentScheduleRepository.findByCreatedBy_Id(userId);
@@ -65,7 +68,7 @@ public class AppointmentScheduleService {
                     schedule.getFrequency(),
                     schedule.getFirstDate(),
                     schedule.getNote(),
-                    schedule.getCreatedBy() != null ? schedule.getCreatedBy().getFullName() : null,
+                    schedule.getCreatedBy() != null ? schedule.getCreatedBy().getId() : null,
                     participantDTOs
             );
         }).toList();
@@ -80,19 +83,13 @@ public class AppointmentScheduleService {
         schedule.setFrequency(frequency);
         schedule.setFirstDate(firstDate);
         schedule.setNote(note);
+        schedule.setParticipants(new HashSet<>(userRepository.findAllById(memberIds)));
 
-        Set<User> participants = new HashSet<>(userRepository.findAllById(memberIds));
-        schedule.setParticipants(participants);
+        AppointmentSchedule saved = appointmentScheduleRepository.save(schedule);
+        notificationService.createNotificationsForAppointmentUpdate(saved.getCreatedBy(),
+                saved.getParticipants(), hospital, saved);
 
-        if (memberIds != null) {
-            schedule.setParticipants(new HashSet<>(userRepository.findAllById(memberIds)));
-        }
-        notificationService.createNotificationsForAppointmentUpdate(
-                schedule.getCreatedBy(),
-                participants,
-                hospital
-        );
-        return appointmentScheduleRepository.save(schedule);
+        return saved;
     }
 
     public void deleteSchedule(UUID scheduleId) {
@@ -100,10 +97,35 @@ public class AppointmentScheduleService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch khám"));
         Set<User> participants = schedule.getParticipants();
         User deleter = schedule.getCreatedBy();
-
         String hospitalName = schedule.getHospitalName();
 
-        appointmentScheduleRepository.deleteById(scheduleId);
-        notificationService.createNotificationsForAppointmentDelete(deleter, participants, hospitalName);
+        appointmentScheduleRepository.delete(schedule);
+        notificationService.createNotificationsForAppointmentDelete(deleter, participants, hospitalName, schedule);
     }
+
+    public AppointmentResponseDTO getScheduleDetail(UUID appointmentId, UUID userId) {
+        AppointmentSchedule schedule = appointmentScheduleRepository
+                .findAccessibleByIdAndUser(appointmentId, userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hoặc bạn không có quyền xem"));
+
+        List<ParticipantDTO> participantDTOs = schedule.getParticipants().stream()
+                .map(p -> new ParticipantDTO(
+                        p.getId(),
+                        p.getAccount() != null ? p.getAccount().getImage() : null,
+                        p.getFullName(),
+                        p.getEmail()
+                ))
+                .toList();
+
+        return new AppointmentResponseDTO(
+                schedule.getId(),
+                schedule.getHospitalName(),
+                schedule.getFrequency(),
+                schedule.getFirstDate(),
+                schedule.getNote(),
+                schedule.getCreatedBy() != null ? schedule.getCreatedBy().getId() : null,
+                participantDTOs
+        );
+    }
+
 }

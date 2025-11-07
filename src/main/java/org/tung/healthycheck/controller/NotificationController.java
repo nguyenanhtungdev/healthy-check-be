@@ -68,4 +68,13 @@ public class NotificationController {
         long count = notificationService.getUnreadNotifications(user.getId()).size();
         return ResponseEntity.ok(Map.of("count", count));
     }
+
+    @DeleteMapping("/read")
+    public ResponseEntity<Map<String, String>> deleteAllReadNotifications() {
+        User user = authService.getCurrentUser();
+        int deletedCount = notificationService.deleteAllReadNotifications(user.getId());
+        return ResponseEntity.ok(Map.of(
+                "message", "Đã xóa " + deletedCount + " thông báo đã đọc"
+        ));
+    }
 }

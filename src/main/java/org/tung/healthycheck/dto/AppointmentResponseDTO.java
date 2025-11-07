@@ -17,6 +17,6 @@ public class AppointmentResponseDTO {
     private String frequency;
     private LocalDate firstDate;
     private String note;
-    private String createdBy;
+    private UUID createdBy;
     private List<ParticipantDTO> participants;
 }

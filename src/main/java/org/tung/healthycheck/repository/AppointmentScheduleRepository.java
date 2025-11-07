@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.tung.healthycheck.model.AppointmentSchedule;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -16,9 +17,13 @@ public interface AppointmentScheduleRepository extends JpaRepository<Appointment
     // Lịch mà người dùng được thêm vào (trong participants)
     List<AppointmentSchedule> findByParticipants_Id(UUID participantId);
 
-    // Lấy tất cả (do tạo hoặc tham gia)
     @Query("SELECT DISTINCT a FROM AppointmentSchedule a " +
             "LEFT JOIN a.participants p " +
             "WHERE a.createdBy.id = :userId OR p.id = :userId")
     List<AppointmentSchedule> findAllByUserInvolved(UUID userId);
+
+    @Query("SELECT DISTINCT a FROM AppointmentSchedule a " +
+            "LEFT JOIN a.participants p " +
+            "WHERE a.id = :appointmentId AND (a.createdBy.id = :userId OR p.id = :userId)")
+    Optional<AppointmentSchedule> findAccessibleByIdAndUser(UUID appointmentId, UUID userId);
 }

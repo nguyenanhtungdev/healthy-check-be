@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Notification {
+public class Reminder {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -21,20 +23,15 @@ public class Notification {
     private UUID id;
 
     private String title;
-    private String content;
-    private String type; // "lich_kham", "suc_khoe", "cap_nhat", "uu_dai", ...
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private Boolean isRead = false;
+    private String note;
+    private String category; // CHUNG, SUC_KHOE, CONG_VIEC, CA_NHAN
+    private LocalDateTime remindAt; // thời gian nhắc
+    private Boolean sent = false;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "appointment_id", nullable = true)
-    private AppointmentSchedule appointment;
-
-    @ManyToOne
-    @JoinColumn(name = "reminder_id", nullable = true)
-    private Reminder reminder;
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
 }

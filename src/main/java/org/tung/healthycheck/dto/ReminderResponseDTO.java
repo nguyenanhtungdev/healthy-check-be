@@ -10,13 +10,11 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NotificationDTO {
+public class ReminderResponseDTO {
     private UUID id;
     private String title;
-    private String content;
-    private String type;
-    private Boolean isRead;
-    private LocalDateTime createdAt;
-    private UUID appointmentId;
-    private UUID reminderId;
+    private String note;
+    private String category;
+    private LocalDateTime remindAt;
+    private Boolean sent;
 }

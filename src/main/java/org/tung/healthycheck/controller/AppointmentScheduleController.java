@@ -78,4 +78,15 @@ public class AppointmentScheduleController {
         appointmentScheduleService.deleteSchedule(id);
         return ResponseEntity.ok(Map.of("message", "Xóa lịch khám thành công"));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAppointmentDetail(@PathVariable UUID id) {
+        try {
+            User currentUser = authService.getCurrentUser();
+            AppointmentResponseDTO dto = appointmentScheduleService.getScheduleDetail(id, currentUser.getId());
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

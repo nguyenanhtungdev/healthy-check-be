@@ -2,6 +2,8 @@ package org.tung.healthycheck.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.tung.healthycheck.dto.NotificationDTO;
+import org.tung.healthycheck.model.AppointmentSchedule;
 import org.tung.healthycheck.model.Notification;
 import org.tung.healthycheck.model.User;
 import org.tung.healthycheck.repository.NotificationRepository;
@@ -10,8 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
-import org.tung.healthycheck.dto.NotificationDTO;
 
 @Service
 public class NotificationService {
@@ -42,7 +42,7 @@ public class NotificationService {
         notificationRepository.saveAll(list);
     }
 
-    public void createNotification(User user, String title, String content, String type) {
+    public void createNotification(User user, String title, String content, String type, AppointmentSchedule schedule) {
         Notification notification = new Notification();
         notification.setUser(user);
         notification.setTitle(title);
@@ -50,16 +50,23 @@ public class NotificationService {
         notification.setType(type);
         notification.setCreatedAt(LocalDateTime.now());
         notification.setIsRead(false);
+        notification.setAppointment(schedule);
         notificationRepository.save(notification);
     }
 
-    public void createNotificationsForAppointment(User creator, Set<User> participants, String hospitalName) {
+    public void createNotification(User user, String title, String content, String type) {
+        createNotification(user, title, content, type, null);
+    }
+
+    public void createNotificationsForAppointment(User creator, Set<User> participants,
+                                                  String hospitalName, AppointmentSchedule schedule) {
         // Cho người tạo
         createNotification(
                 creator,
                 "Tạo lịch khám thành công",
                 "Bạn đã tạo lịch khám tại " + hospitalName,
-                "lich_kham"
+                "lich_kham",
+                schedule
         );
 
         // Cho từng người được thêm
@@ -69,24 +76,61 @@ public class NotificationService {
                         p,
                         "Được thêm vào lịch khám",
                         "Bạn đã được " + creator.getFullName() + " thêm vào lịch khám tại " + hospitalName,
-                        "lich_kham"
+                        "lich_kham",
+                        schedule
                 );
             }
         }
     }
 
-    // Convert Entity -> DTO
-    private NotificationDTO convertToDTO(Notification notification) {
-        return new NotificationDTO(
-                notification.getId(),
-                notification.getTitle(),
-                notification.getContent(),
-                notification.getType(),
-                notification.getIsRead(),
-                notification.getCreatedAt()
+    public void createNotificationsForAppointmentUpdate(User updater, Set<User> participants,
+                                                        String hospitalName, AppointmentSchedule schedule) {
+        createNotification(
+                updater,
+                "Cập nhật lịch khám",
+                "Bạn đã cập nhật lịch khám tại " + hospitalName,
+                "lich_kham",
+                schedule
         );
+
+        for (User p : participants) {
+            if (!p.getId().equals(updater.getId())) {
+                createNotification(
+                        p,
+                        "Lịch khám đã được cập nhật",
+                        updater.getFullName() + " đã cập nhật lịch khám tại " + hospitalName,
+                        "lich_kham",
+                        schedule
+                );
+            }
+        }
     }
 
+    // Khi xóa lịch hẹn
+    public void createNotificationsForAppointmentDelete(User deleter, Set<User> participants,
+                                                        String hospitalName, AppointmentSchedule schedule) {
+        createNotification(
+                deleter,
+                "Xóa lịch khám",
+                "Bạn đã xóa lịch khám tại " + hospitalName,
+                "lich_kham",
+                schedule
+        );
+
+        for (User p : participants) {
+            if (!p.getId().equals(deleter.getId())) {
+                createNotification(
+                        p,
+                        "Lịch khám đã bị hủy",
+                        deleter.getFullName() + " đã hủy lịch khám tại " + hospitalName,
+                        "lich_kham",
+                        schedule
+                );
+            }
+        }
+    }
+
+    // Đánh dấu đã đọc
     public void markAsRead(UUID notificationId, UUID userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo"));
@@ -97,49 +141,28 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    public void createNotificationsForAppointmentUpdate(User updater, Set<User> participants, String hospitalName) {
-        // Cho người cập nhật
-        createNotification(
-                updater,
-                "Cập nhật lịch khám",
-                "Bạn đã cập nhật lịch khám tại " + hospitalName,
-                "lich_kham"
+    // Convert Entity -> DTO
+    private NotificationDTO convertToDTO(Notification n) {
+        return new NotificationDTO(
+                n.getId(),
+                n.getTitle(),
+                n.getContent(),
+                n.getType(),
+                n.getIsRead(),
+                n.getCreatedAt(),
+                n.getAppointment() != null ? n.getAppointment().getId() : null,
+                n.getReminder() != null ? n.getReminder().getId() : null
         );
-
-        // Cho các thành viên khác
-        for (User p : participants) {
-            if (!p.getId().equals(updater.getId())) {
-                createNotification(
-                        p,
-                        "Lịch khám đã được cập nhật",
-                        updater.getFullName() + " đã cập nhật lịch khám tại " + hospitalName,
-                        "lich_kham"
-                );
-            }
-        }
     }
 
-    //Khi xóa lịch khám
-    public void createNotificationsForAppointmentDelete(User deleter, Set<User> participants, String hospitalName) {
-        // Cho người xóa
-        createNotification(
-                deleter,
-                "Xóa lịch khám",
-                "Bạn đã xóa lịch khám tại " + hospitalName,
-                "lich_kham"
-        );
+    public int deleteAllReadNotifications(UUID userId) {
+        List<Notification> readNotifications = notificationRepository.findByUser_IdAndIsReadTrue(userId);
+        int count = readNotifications.size();
 
-        // Cho các thành viên khác
-        for (User p : participants) {
-            if (!p.getId().equals(deleter.getId())) {
-                createNotification(
-                        p,
-                        "Lịch khám đã bị hủy",
-                        deleter.getFullName() + " đã hủy lịch khám tại " + hospitalName,
-                        "lich_kham"
-                );
-            }
+        if (count > 0) {
+            notificationRepository.deleteAll(readNotifications);
         }
+
+        return count;
     }
 }
-

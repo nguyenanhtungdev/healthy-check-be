@@ -13,9 +13,10 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://haycrlq-tungdev1109-8081.exp.direct", "http://localhost:8081") // domain frontend
+//                        .allowedOrigins("https://haycrlq-tungdev1109-8081.exp.direct", "http://localhost:8081","https://woynrru-anonymous-8081.exp.direct/") // domain frontend
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
+                        .allowedOriginPatterns("*")
                         .allowCredentials(true);
             }
         };

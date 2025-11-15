@@ -13,6 +13,7 @@ public class MealCreateDTO {
     private String name;
     private LocalTime time;
     private List<MealItemCreateDTO> items;
+    private Integer portion;
     @Data public static class MealItemCreateDTO {
         private UUID foodId;
         private String portion;

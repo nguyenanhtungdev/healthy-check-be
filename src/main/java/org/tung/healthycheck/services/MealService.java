@@ -34,24 +34,34 @@ public class MealService {
 
         int total = 0;
         List<MealItem> items = new ArrayList<>();
+
         for (MealCreateDTO.MealItemCreateDTO it : dto.getItems()) {
+
             Food food = foodRepository.findById(it.getFoodId())
                     .orElseThrow(() -> new IllegalArgumentException("Food not found: " + it.getFoodId()));
+
             MealItem mi = new MealItem();
             mi.setMeal(meal);
             mi.setFood(food);
             mi.setName(food.getName());
             mi.setPortion(it.getPortion());
-            int cal = it.getOverrideCalories() != null ? it.getOverrideCalories() : food.getCalories();
-            mi.setCalories(cal);
-            total += cal;
+
+            int base = it.getOverrideCalories() != null ? it.getOverrideCalories() : food.getCalories(); // cal trên 100g
+            int gram = Integer.parseInt(it.getPortion());
+
+            int calories = base * gram / 100;
+            mi.setCalories(calories);
+
+            total += calories;
             items.add(mi);
         }
+
         meal.setItems(items);
         meal.setTotalCalories(total);
         mealRepository.save(meal);
         return meal.getId();
     }
+
     @Transactional
     public MealDayResponseDTO getMealsOfDate(UUID userId, LocalDate date) {
         List<Meal> meals = mealRepository.findByUser_IdAndDate(userId, date);
@@ -75,6 +85,9 @@ public class MealService {
     }
 
     public List<FoodDTO> suggestFoodsForRemaining(Integer remaining) {
+        if (remaining <= 0) {
+            return List.of();  // Không gợi ý
+        }
         // cửa sổ +-10% để dễ gợi ý (vd còn thiếu 400 => gợi ý <= 440)
         int threshold = (int)Math.round(remaining * 1.10);
         return foodRepository.findByCaloriesLessThanEqual(threshold).stream()

@@ -32,6 +32,5 @@ public class Meal {
 
     @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MealItem> items = new ArrayList<>();
-
     private Integer totalCalories; // tổng calo của bữa
 }
